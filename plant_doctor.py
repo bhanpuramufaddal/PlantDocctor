@@ -3,35 +3,23 @@ from WeatherForcaster import WeatherForcaster
 import requests
 import os
 
-REPORT_TEMPLATE = """**Plant Diagnosis Report**
-
-**Crop:** [Name of the crop]
-
+REPORT_TEMPLATE = """
+**1. Crop Identification:**
+    - Plant Species, sub-species and variety
+    - Age of Plant
+    - General information about the plant sppecies and variety
 ---
-
-**1. Plant Identification:**
-  - **Description:** 
-     - **Plant Species:** [Species name]
-     - **Variety (if known):** [Variety name]
-     - **Age of Plant:** [Age or stage of growth]
-     - General information about the plant sppecies and variety
----
-** Are there any serious abnormalitiesw in theplant. 
+** Are there any serious abnormalitiesw in the crop or plant. 
     - Does the plant appears to be infected by any disease or pest?
-    - Are there any visible signs of stress or damage?
     - What could be the cause of these abnormalities?
-    - What can be done to improve the health of the plant?
-
+---
 **2 Discuss the general Health of the crop basaed on the following factors:**
-    - Its appearance
-    - Weather Conditions
+    - appearance
     - Soil Conditions
-    - Watering Conditions
-    - Nutrient Conditions
+    - Watering and Nutrient Conditions
     - Pest and Disease Conditions
-    - Does the plant normal grow in this location and under these conditions?
-    - Any other factors that may be relevant to the health of the plant.
-
+    - Any other factors
+---
 **3. Recommendations:**
     - If the plant is unhealthy, what can be done to improve its health?
     - If the plant is healthy, what can be done to maintain its health?
@@ -39,10 +27,11 @@ REPORT_TEMPLATE = """**Plant Diagnosis Report**
 
 class PlantDoctor:
 
-    def __init__(self, latitude, longitude, image):
+    def __init__(self, latitude, longitude, image, lang = 'English'):
         API_KEY = os.environ.get("API_KEY")
 
         self.gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key={API_KEY}"
+        self.translate_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_KEY}"
 
         self.headers = {
             "Content-Type": "application/json"
@@ -53,10 +42,11 @@ class PlantDoctor:
         weatherAgent = WeatherForcaster()
         self.weather_data = weatherAgent.get_weather_summary(latitude, longitude)
         self.plant_image = image
+        self.lang = lang
 
     def get_consultation(self):
 
-        prompt = """
+        prompt = f"""
         Lets say you are a expert botanistor and like a doctor for plants. A farmer has asked you to inspect his crops.
         You know the following details about a plant:
 
@@ -69,14 +59,42 @@ class PlantDoctor:
         3. **An image of the plant attached**
 
         You need to diagnose this plant based on this information. and prepare a report for the farmer.
-        The format of the report must be like this.
+        You can use the below template to prepare the report.
         ```
         {REPORT_TEMPLATE}
         ```
+        ***If you do not have any information regarding any of the above topucs, you can skip it altogether.***
         """
 
         report = self.generateText(prompt, self.plant_image)
+        if self.lang != 'en':
+            report = self.translate(self.lang, report)
+
         return report
+
+    def translate(self, language, text):
+
+        prompt = f"""
+        Translate the text below into {language} verbatim. The response must include only the translation.
+
+        Text to translate:
+        {text}
+
+        ..................................
+        Output:
+        """
+        data = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }],
+        }
+
+        response = requests.post(self.translate_url , json=data, headers=self.headers)
+        #print(response.json())
+        return response.json()['candidates'][0]['content']['parts'][0]['text']
+
 
     def generateText(self, prompt, image):
 
