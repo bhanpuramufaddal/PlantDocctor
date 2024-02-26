@@ -5,7 +5,7 @@ from io import BytesIO
 import base64
 import os
 import requests
-from plant_doctor import PlantDoctor
+from app.plant_doctor import PlantDoctor
 
 app = FastAPI()
 

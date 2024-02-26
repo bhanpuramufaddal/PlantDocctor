@@ -1,29 +1,29 @@
-from PlaceName import generate_location_summary
-from WeatherForcaster import WeatherForcaster
+from app.PlaceName import generate_location_summary
+from app.WeatherForcaster import WeatherForcaster
 import requests
 import os
 
-REPORT_TEMPLATE = """
-**1. Crop Identification:**
-    - Plant Species, sub-species and variety
-    - Age of Plant
-    - General information about the plant sppecies and variety
----
-** Are there any serious abnormalitiesw in the crop or plant. 
-    - Does the plant appears to be infected by any disease or pest?
-    - What could be the cause of these abnormalities?
----
-**2 Discuss the general Health of the crop basaed on the following factors:**
-    - appearance
-    - Soil Conditions
-    - Watering and Nutrient Conditions
-    - Pest and Disease Conditions
-    - Any other factors
----
-**3. Recommendations:**
-    - If the plant is unhealthy, what can be done to improve its health?
-    - If the plant is healthy, what can be done to maintain its health?
-"""
+# REPORT_TEMPLATE = """
+# **1. Crop Identification:**
+#     - Plant Species, sub-species and variety
+#     - Age of Plant
+#     - General information about the plant sppecies and variety
+# ---
+# ** Are there any serious abnormalitiesw in the crop or plant. 
+#     - Does the plant appears to be infected by any disease or pest?
+#     - What could be the cause of these abnormalities?
+# ---
+# **2 Discuss the general Health of the crop basaed on the following factors:**
+#     - appearance
+#     - Soil Conditions
+#     - Watering and Nutrient Conditions
+#     - Pest and Disease Conditions
+#     - Any other factors
+# ---
+# **3. Recommendations:**
+#     - If the plant is unhealthy, what can be done to improve its health?
+#     - If the plant is healthy, what can be done to maintain its health?
+# """
 
 class PlantDoctor:
 
@@ -47,23 +47,25 @@ class PlantDoctor:
     def get_consultation(self):
 
         prompt = f"""
-        Lets say you are a expert botanistor and like a doctor for plants. A farmer has asked you to inspect his crops.
-        You know the following details about a plant:
+        You are an expert in bottany and horticulture. You have been asked to analyze the plant in the picture and provide a detailed report on its health.
 
-        1. **The location of the plant**
+        This is the location of the plant in the picture:
         {self.address_data}
 
-        2. **The current and future weather conditions at this location**
+        These are the weather conditions where the following plant is in currently.
         {self.weather_data}
 
-        3. **An image of the plant attached**
+        Analyze the plant in the picture.
+        Identify its spececies and variety if possible.
+        Give feedback on its health.
+        If its unhealthy, explain why ?
+        Suggest ways to improve its health.
 
-        You need to diagnose this plant based on this information. and prepare a report for the farmer.
-        You can use the below template to prepare the report.
-        ```
-        {REPORT_TEMPLATE}
-        ```
-        ***If you do not have any information regarding any of the above topucs, you can skip it altogether.***
+        At the end, elaborate on the current and future weather conditions and how it can affect the plant health.
+
+        1) DOUBLE ANALYZE the PHOTO. 
+        2) Remember dont say something like the plant has red spots even in reality the picture doesnt contain red spots.
+        3) The answer must beauthorative and complete. Do not ask the user to consult another expert.
         """
 
         report = self.generateText(prompt, self.plant_image)
